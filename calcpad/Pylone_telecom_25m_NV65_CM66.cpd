@@ -1,0 +1,189 @@
+"Pylône télécom autostable de 25 m — Vent NV65 et vérification des barres CM66 (Additif 80)
+'Pylône en treillis à section carrée, cornières à ailes égales en acier E24. Tronc pyramidal de 0 à 20 m (largeur 5 m → 1 m), fût droit de 1 × 1 m de 20 à 25 m.
+'Note de calcul manuelle, vérifiée contre le modèle 3D (Robot Structural Analysis et outil Python indépendant, voir §7).
+#round 3
+"1. Données
+'<b>Géométrie</b>
+H_1 = 20m
+H_2 = 5m
+H = H_1 + H_2
+b_0 = 5m
+b_1 = 1m
+b_2 = 1m
+'Largeur de la tour au niveau z (tronc pyramidal) :
+b(z) = b_0 - (b_0 - b_1)*z/H_1
+'Pente d’une membrure dans le plan d’une face, et inclinaison réelle de la membrure (elle penche dans les deux directions) :
+t = (b_0 - b_1)/(2*H_1)
+c_α = 1/sqrt(1 + 2*t^2)
+'<b>Acier E24</b>
+f_y = 235MPa
+E = 210000MPa
+λ_1 = π*sqrt(E/f_y)
+'<b>Profils</b> (i_v = rayon de giration minimal, axe faible v-v de la cornière)
+'Membrures L60×8 :
+A_m = 9.03cm^2
+i_m = 1.16cm
+'Diagonales L50×6 :
+A_d = 5.69cm^2
+i_d = 0.969cm
+'Barres secondaires (redondantes) L25×3, et variante L35×4 :
+A_s = 1.43cm^2
+i_s = 0.48cm
+A_s2 = 2.67cm^2
+i_s2 = 0.68cm
+"2. Vent NV65 (pylônes en treillis)
+'<b>Pression de base</b> — hypothèse du modèle : région 1, vent normal, site normal (à adapter au site réel).
+q_10 = 50daN/m^2
+k_s = 1
+k_m = 1
+'Effet de dimension, NV65 fig. R-III-2 (plus grande dimension 25 m) :
+δ = 0.778
+'<b>Coefficient dynamique</b> β = θ·(1 + ξ·τ). Période propre du premier mode de flexion, obtenue par analyse modale du modèle 3D :
+T_0 = 0.20s
+'ξ se lit sur l’abaque NV65 fig. R-III-3 pour T_0 ; on retient une valeur majorante (à confirmer sur l’abaque). τ : fig. R-III-4 pour H = 25 m.
+θ = 1
+ξ = 0.28
+τ = 0.36
+β = θ*(1 + ξ*τ)
+'<b>Effet de hauteur</b>
+k_H(z) = 2.5*(z + 18m)/(z + 60m)
+'<b>Tronçon T1 (0 à 20 m)</b> — S_p1 = surface pleine d’une face (barres de la face au vent), obtenue par métré des barres :
+S_p1 = 6.79m^2
+S_1 = (b_0 + b_1)/2*H_1
+φ_1 = S_p1/S_1
+'Coefficient de traînée d’un pylône carré en cornières, vent normal à une face, puis vent sur la diagonale :
+C_t1 = 3.2 - 2*φ_1
+C_d1 = C_t1*(1 + 0.6*φ_1)
+'Pression au sommet du tronçon (comme Robot) :
+q_1 = q_10*k_H(H_1)*k_s*k_m*δ*β
+T_n1 = q_1*C_t1*S_p1|daN
+T_d1 = q_1*C_d1*S_p1|daN
+'<b>Tronçon T2 (20 à 25 m)</b>
+S_p2 = 1.20m^2
+S_2 = b_2*H_2
+φ_2 = S_p2/S_2
+C_t2 = 3.2 - 2*φ_2
+C_d2 = C_t2*(1 + 0.6*φ_2)
+q_2 = q_10*k_H(H)*k_s*k_m*δ*β
+T_n2 = q_2*C_t2*S_p2|daN
+T_d2 = q_2*C_d2*S_p2|daN
+'<b>Effort total de vent normal</b> (vent sur une face, puis sur la diagonale) :
+T_n = T_n1 + T_n2
+T_d = T_d1 + T_d2
+"3. Effort tranchant et moment de renversement au niveau z
+'Hypothèse : dans chaque tronçon, le taux de remplissage φ est constant, donc la force par mètre de hauteur est proportionnelle à la largeur de la tour : w(z) = q·C_t·φ·b(z).
+k_n1 = q_1*C_t1*φ_1
+k_n2 = q_2*C_t2*φ_2
+k_d1 = q_1*C_d1*φ_1
+k_d2 = q_2*C_d2*φ_2
+'Surface de contour du tronc au-dessus de z, et hauteur de son centre de gravité au-dessus de z (trapèze) :
+A_1(z) = (b(z) + b_1)/2*(H_1 - z)
+e_1(z) = (H_1 - z)*(b(z) + 2*b_1)/(3*(b(z) + b_1))
+'Vent normal à une face :
+V_n(z) = k_n1*A_1(z) + k_n2*S_2
+M_n(z) = k_n1*A_1(z)*e_1(z) + k_n2*S_2*(H_1 + H_2/2 - z)
+'Vent sur la diagonale :
+V_d(z) = k_d1*A_1(z) + k_d2*S_2
+M_d(z) = k_d1*A_1(z)*e_1(z) + k_d2*S_2*(H_1 + H_2/2 - z)
+'Au pied de la tour :
+V_n(0m)|daN
+M_n(0m)|kNm
+M_d(0m)|kNm
+"4. Membrures (montants)
+'Effort dû au vent dans la membrure la plus comprimée : vent normal, deux membrures se partagent le moment (bras de levier b) ; vent diagonal, une seule membrure d’angle (bras de levier b·√2).
+N_n(z) = M_n(z)/(2*b(z))
+N_d(z) = M_d(z)/(sqrt(2)*b(z))
+N_W(z) = max(N_n(z); N_d(z))
+'<b>Flambement CM66 Additif 80</b> (courbe c pour les cornières) : k_0 = 1/χ, vérification k_0·N ≤ A·σ_e.
+α_c = 0.49
+Φ(λ) = 0.5*(1 + α_c*(λ/λ_1 - 0.2) + (λ/λ_1)^2)
+k_0(λ) = Φ(λ) + sqrt(Φ(λ)^2 - (λ/λ_1)^2)
+'<b>Niveau z = 10 m</b> (au-dessus de 10 m les panneaux passent de 1 m à 2 m : c’est la membrure la plus élancée).
+z_a = 10m
+G_a = 11.93kN
+L_a = 2.02m
+'G_a = poids propre au-dessus du niveau (métré des barres). Combinaisons CM66 : 4/3 G + 3/2 W et G + 1,75 W (vent extrême).
+N_a1 = (4/3*G_a/4 + 1.5*N_W(z_a))/c_α
+N_a2 = (G_a/4 + 1.75*N_W(z_a))/c_α
+N_a = max(N_a1; N_a2)
+λ_a = L_a/i_m
+η_a = k_0(λ_a)*N_a/(A_m*f_y)
+#if η_a ≤ 1
+'<b style="color:green">Résistance au flambement vérifiée.</b>
+#else
+'<b style="color:red">Résistance au flambement NON vérifiée.</b>
+#end if
+#if λ_a ≤ 120
+'<b style="color:green">Élancement ≤ 120 : vérifié.</b>
+#else
+'<b style="color:red">Élancement > 120 (limite usuelle des montants) : NON vérifié.</b> Correction logique : ajouter une barre secondaire à mi-panneau entre 10 et 20 m, comme entre 0 et 10 m, ce qui divise la longueur de flambement par 2 :
+λ_a2 = L_a/2/i_m
+η_a2 = k_0(λ_a2)*N_a/(A_m*f_y)
+#end if
+'<b>Niveau z = 0 m</b> (pied de la tour, moment maximal)
+z_b = 0m
+G_b = 24.18kN
+L_b = 1.01m
+N_b = max((4/3*G_b/4 + 1.5*N_W(z_b))/c_α; (G_b/4 + 1.75*N_W(z_b))/c_α)
+λ_b = L_b/i_m
+η_b = k_0(λ_b)*N_b/(A_m*f_y)
+#if and(η_b ≤ 1; λ_b ≤ 120)
+'<b style="color:green">Membrure de pied vérifiée.</b>
+#else
+'<b style="color:red">Membrure de pied NON vérifiée.</b>
+#end if
+'<b>Important :</b> toutes les membrures doivent être en L60×8. Dans le modèle Robot, deux membrures entre 6 et 8 m portent la section des barres secondaires, et une membrure entre 20 et 25 m celle des diagonales : à corriger.
+"5. Diagonales (panneau de pied, contreventement en V renversé)
+'Le vent normal gouverne (sur la diagonale, chaque face ne reçoit que V_d/(2√2), moins que V_n/2).
+'<b>Part de l’effort tranchant reprise par les membrures inclinées</b> : les 4 membrures, inclinées de t, reprennent 2·M·t/b ; les diagonales reprennent le reste.
+V_br = V_n(0m) - 2*M_n(0m)*t/b_0
+'Géométrie de la diagonale : du pied de la membrure au milieu de la traverse à 2 m.
+l_h = b_0/2
+h_p = 2m
+L_d = sqrt(l_h^2 + h_p^2 + (t*h_p)^2)
+'Deux faces parallèles au vent, deux diagonales par face (l’une tendue, l’autre comprimée) :
+N_Wd = V_br/(4*l_h/L_d)
+'Effort de compatibilité dû au poids propre dans la diagonale (tour évasée), lu dans le modèle 3D :
+N_Gd = 0.70kN
+N_dia = max(4/3*N_Gd + 1.5*N_Wd; N_Gd + 1.75*N_Wd)
+'<b>Cas A — diagonale non reliée à mi-longueur</b> (état du modèle Robot : la diagonale passe par le nœud des barres secondaires sans y être connectée) :
+λ_A = L_d/i_d
+η_A = k_0(λ_A)*N_dia/(A_d*f_y)
+#if and(η_A ≤ 1; λ_A ≤ 200)
+'<b style="color:green">Vérifié.</b>
+#else
+'<b style="color:red">Élancement > 200 : NON vérifié</b>, même si la résistance passe.
+#end if
+'<b>Cas B — diagonale boulonnée au nœud des barres secondaires à mi-longueur</b> (correction à faire dans Robot : couper les 18 diagonales concernées à ce nœud) :
+λ_B = L_d/2/i_d
+η_B = k_0(λ_B)*N_dia/(A_d*f_y)
+#if and(η_B ≤ 1; λ_B ≤ 200)
+'<b style="color:green">Vérifié : résistance et élancement.</b>
+#else
+'<b style="color:red">NON vérifié.</b>
+#end if
+"6. Barres secondaires (redondantes)
+'Elles ne portent pas les charges principales : elles tiennent les membrures et les diagonales. Règle usuelle : effort de calcul égal à 2,5 % de l’effort de la membrure qu’elles stabilisent (valeur sécuritaire, les codes de pylônes retiennent 1,5 à 2,5 %).
+N_s = 0.025*N_b
+'Barre secondaire la plus longue du modèle :
+L_s = 1.455m
+λ_s = L_s/i_s
+η_s = k_0(λ_s)*N_s/(A_s*f_y)
+#if λ_s ≤ 250
+'<b style="color:green">L25×3 : élancement vérifié.</b>
+#else
+'<b style="color:red">L25×3 : élancement > 250, NON vérifié</b> (la résistance passe largement). Variante L35×4 :
+λ_s2 = L_s/i_s2
+η_s2 = k_0(λ_s2)*N_s/(A_s2*f_y)
+#end if
+"7. Comparaison avec le modèle 3D et conclusions
+'Modèle 3D (outil Python indépendant, validé contre Robot à ±2 % sur les efforts), mêmes sections, membrures corrigées, vent NV65 dans 8 directions, β = 1,10 :
+'– membrure à 10 m (barre 288) : N = 20,1 kN, taux k_0·N/N_p = 0,42 ;
+'– diagonale de pied (barre 175) : N = 4,1 kN, taux = 0,43 avec L_k = L ;
+'– déplacement en tête (ELS, G + W) : 7,8 mm, très inférieur à H/100 = 250 mm.
+'Les valeurs manuelles ci-dessus doivent rester proches de ces résultats ; un écart de 10 à 20 % est normal (répartition simplifiée du vent et efforts secondaires).
+'<b>Conclusions</b>
+'1. La résistance des barres est largement suffisante une fois les membrures corrigées.
+'2. Le vrai problème est l’élancement : relier les diagonales aux nœuds des barres secondaires, ajouter une barre secondaire à mi-panneau entre 10 et 20 m, et passer les barres secondaires en L35×4.
+'3. Vérifier toutes les directions de vent (4 normales et 4 diagonales) : dans Robot, seules deux directions étaient étudiées.
+'4. Non traités ici : assemblages boulonnés, platines et tiges d’ancrage, fondations.

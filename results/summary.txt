@@ -1,0 +1,43 @@
+
+== Solver validation (max compression, kN) ==
+  PP                               chord     python    -5.68  robot    -5.67  (+0.2%)
+  PP                               diagonal  python    -0.24  robot    -0.23  (+3.5%)
+  PP                               secondary python    -0.01  robot    -0.00  (+1745.8%)
+  Vent perpendiculaire paroi I     chord     python   -13.47  robot   -13.51  (-0.3%)
+  Vent perpendiculaire paroi I     diagonal  python    -2.16  robot    -2.12  (+2.0%)
+  Vent perpendiculaire paroi I     secondary python    -0.17  robot    -0.09  (+90.8%)
+  Vent bissectrice paroi I et II   chord     python   -28.64  robot   -29.06  (-1.5%)
+  Vent bissectrice paroi I et II   diagonal  python    -2.21  robot    -2.20  (+0.5%)
+  Vent bissectrice paroi I et II   secondary python    -0.28  robot    -0.17  (+61.6%)
+
+== Periods (s): [0.301 0.243 0.228 0.222 0.215 0.214]
+
+== NV65 per section (normal wind, beta = 1) ==
+  T1: Sp=6.79 m2  S=60.0 m2  phi=0.113  Ct=2.974  T=932.6 daN  T_diag=995.9 daN
+  T2: Sp=1.20 m2  S=5.0 m2  phi=0.241  Ct=2.719  T=161.0 daN  T_diag=184.2 daN
+  totals (daN): {'Robot applied, normal': 1234.0, 'Robot applied, diagonal': 1710.5, 'Robot note, normal': 1429.2, 'Robot note, diagonal': 1584.6}
+
+== Member checks: Robot wind loads (as modelled) ==
+  chord     CAEP 25x3  max ratio 0.89 (bar 333, N=-4.82 kN, k0=6.20, 4/3 G)  lambda max 210 / limit 120 -> 24 bars over | legs with wrong section: 9 (max ratio 0.89)
+  diagonal  CAEP 50x6  max ratio 0.42 (bar 175, N=-3.92 kN, k0=14.19, G + 1.75 W diagonal (Robot) (extreme))  lambda max 331 / limit 200 -> 74 bars over
+  secondary CAEP 25x3  max ratio 0.11 (bar 20, N=-0.40 kN, k0=9.15, G + 1.75 W diagonal (Robot) (extreme))  lambda max 303 / limit 250 -> 32 bars over
+
+== Member checks: NV65 Python, beta=1.00, 8 directions ==
+  chord     CAEP 25x3  max ratio 4.00 (bar 333, N=-21.68 kN, k0=6.20, G + 1.75 W diagonal 225deg (extreme))  lambda max 210 / limit 120 -> 24 bars over | legs with wrong section: 9 (max ratio 4.00)
+  diagonal  CAEP 50x6  max ratio 0.39 (bar 135, N=-3.69 kN, k0=14.19, G + 1.75 W normal 90deg (extreme))  lambda max 331 / limit 200 -> 74 bars over
+  secondary CAEP 25x3  max ratio 0.10 (bar 31, N=-0.37 kN, k0=9.15, G + 1.75 W diagonal 135deg (extreme))  lambda max 303 / limit 250 -> 32 bars over
+
+== Member checks: NV65 Python, beta=1.05, 8 directions ==
+  chord     CAEP 25x3  max ratio 4.17 (bar 333, N=-22.59 kN, k0=6.20, G + 1.75 W diagonal 225deg (extreme))  lambda max 210 / limit 120 -> 24 bars over | legs with wrong section: 9 (max ratio 4.17)
+  diagonal  CAEP 50x6  max ratio 0.41 (bar 135, N=-3.87 kN, k0=14.19, G + 1.75 W normal 90deg (extreme))  lambda max 331 / limit 200 -> 74 bars over
+  secondary CAEP 25x3  max ratio 0.10 (bar 31, N=-0.39 kN, k0=9.15, G + 1.75 W diagonal 135deg (extreme))  lambda max 303 / limit 250 -> 32 bars over
+
+== Member checks: NV65 Python, beta=1.10, 8 directions ==
+  chord     CAEP 25x3  max ratio 4.34 (bar 333, N=-23.49 kN, k0=6.20, G + 1.75 W diagonal 225deg (extreme))  lambda max 210 / limit 120 -> 24 bars over | legs with wrong section: 9 (max ratio 4.34)
+  diagonal  CAEP 50x6  max ratio 0.43 (bar 135, N=-4.04 kN, k0=14.19, G + 1.75 W normal 90deg (extreme))  lambda max 331 / limit 200 -> 74 bars over
+  secondary CAEP 25x3  max ratio 0.11 (bar 31, N=-0.40 kN, k0=9.15, G + 1.75 W diagonal 135deg (extreme))  lambda max 303 / limit 250 -> 32 bars over
+
+== Top displacement G + W (mm): {'W normal 0deg': 8.1, 'W diagonal 315deg': 9.1} | H/100 = 250 mm
+
+written results/tower_check.xlsx
+written wind_profile.png, utilisation.png
