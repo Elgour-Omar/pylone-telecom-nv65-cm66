@@ -1,103 +1,103 @@
-# 25 m Telecom Lattice Tower: NV65 Wind and CM66 Member Checks
+# Pylône télécom en treillis de 25 m : vent NV65 et vérification des barres CM66
 
-🇫🇷 [Résumé en français plus bas](#résumé-en-français)
+🇬🇧 [English summary below](#english-summary)
 
-I modelled a 25 m self-supporting telecom tower in **Autodesk Robot Structural Analysis**, then checked it independently in two ways: a hand calculation in **Calcpad** and a **Python** tool that drives Robot through its API and recomputes the tower with its own 3D solver. The two checks agree with Robot, and they also found errors in my own Robot model that Robot's "section OK" did not show. This repository documents the model, the checks, what they found, and the fixes I am making.
+J'ai modélisé un pylône télécom autostable de 25 m sous **Autodesk Robot Structural Analysis**, puis je l'ai vérifié de deux façons indépendantes : une note de calcul manuelle sous **Calcpad**, et un outil **Python** qui pilote Robot par son API et recalcule la tour avec son propre solveur 3D. Les deux vérifications concordent avec Robot. Elles ont aussi révélé des erreurs dans mon propre modèle, que le « profil correct » de Robot ne montrait pas. Ce dépôt présente le modèle, les vérifications, ce qu'elles ont trouvé et les corrections en cours.
 
 <p align="center">
-  <img src="docs/robot_3d_model.png" width="48%" alt="Robot model of the tower">
-  <img src="results/utilisation.png" width="30%" alt="Member utilisation map">
+  <img src="docs/robot_3d_model.png" width="48%" alt="Modèle Robot du pylône">
+  <img src="results/utilisation.png" width="30%" alt="Carte des taux de travail des barres">
 </p>
 
-## The structure
+## La structure
 
 | | |
 |---|---|
-| Type | Self-supporting square lattice tower, bolted equal-leg angles |
-| Height | 25 m: tapered trunk 0 to 20 m (5 m to 1 m wide), straight 1 × 1 m mast 20 to 25 m |
-| Members | 382 bars: legs L60×8, diagonals L50×6, secondary (redundant) members L25×3, steel E24 |
-| Loads | Self weight and NV65 wind (region 1, normal site, as assumed in the model) |
-| Codes | NV65 (wind on lattice towers), CM66 with Additif 80 (member checks) |
+| Type | Pylône autostable à section carrée, cornières à ailes égales boulonnées |
+| Hauteur | 25 m : tronc pyramidal de 0 à 20 m (largeur 5 m à 1 m), fût droit de 1 × 1 m de 20 à 25 m |
+| Barres | 382 barres : membrures L60×8, diagonales L50×6, barres secondaires (redondantes) L25×3, acier E24 |
+| Charges | Poids propre et vent NV65 (région 1, site normal : hypothèses du modèle) |
+| Règlements | NV65 (vent sur pylônes en treillis), CM66 et Additif 80 (vérification des barres) |
 
-## What is in the repository
+## Contenu du dépôt
 
-| Folder | Content |
+| Dossier | Contenu |
 |---|---|
-| [`calcpad/`](calcpad) | Hand calculation note (French): NV65 wind section by section, shear and overturning moment, leg, diagonal and secondary member checks. [PDF](calcpad/Pylone_telecom_25m_NV65_CM66.pdf) |
-| [`src/`](src) | Python tool: Robot API scripts, 3D frame solver with modal analysis, NV65 wind, CM66 checks, Excel report |
-| [`robot/`](robot) | Robot models: the original, and the version with the sections of my verification report |
-| [`data/`](data) | Model data extracted from Robot (JSON), so the Python tool runs without Robot |
-| [`results/`](results) | Excel reports, plots and printed summaries |
-| [`tests/`](tests) | Automatic checks of the Python tool against values printed by Robot |
+| [`calcpad/`](calcpad) | Note de calcul manuelle : vent NV65 tronçon par tronçon, effort tranchant et moment de renversement, vérification des membrures, des diagonales et des barres secondaires. [PDF](calcpad/Pylone_telecom_25m_NV65_CM66.pdf) |
+| [`src/`](src) | Outil Python : scripts de pilotage de Robot (API), solveur 3D avec analyse modale, vent NV65, vérifications CM66, rapport Excel |
+| [`robot/`](robot) | Modèles Robot : l'original, et la version avec les sections de mon rapport de vérification |
+| [`data/`](data) | Données du modèle extraites de Robot (JSON) : l'outil Python tourne sans Robot |
+| [`results/`](results) | Rapports Excel, graphiques et résumés |
+| [`tests/`](tests) | Contrôles automatiques de l'outil Python par rapport aux valeurs imprimées par Robot |
 
-## Method
+## Méthode
 
-**1. Wind (NV65).** For each section of the tower: solidity ratio φ = Sp / S, drag coefficient Ct = 3.2 − 2φ for angles (× (1 + 0.6φ) for wind on the diagonal), height effect 2.5 (H + 18) / (H + 60), size effect δ, and dynamic coefficient β = θ (1 + ξτ). The natural period needed for β comes from a modal analysis: the first sway mode is at **T ≈ 0.20 s**, so the tower is stiff and β stays close to 1.
+**1. Vent (NV65).** Pour chaque tronçon : taux de remplissage φ = Sp / S, coefficient de traînée Ct = 3,2 − 2φ pour les cornières (× (1 + 0,6φ) pour le vent sur la diagonale), effet de hauteur 2,5 (H + 18) / (H + 60), effet de dimension δ, et coefficient dynamique β = θ (1 + ξτ). La période propre nécessaire pour β vient d'une analyse modale : le premier mode de flexion est à **T ≈ 0,20 s**. La tour est donc raide et β reste proche de 1.
 
-**2. Analysis.** The Python tool rebuilds the Robot model (165 nodes, 382 bars, real section properties and orientations) in its own 3D frame solver, applies the CM66 load combinations (4/3 G + 3/2 W, G + 3/2 W, G + 1.75 W extreme) and checks **8 wind directions** instead of the 2 in the Robot model.
+**2. Calcul.** L'outil Python reconstruit le modèle Robot (165 nœuds, 382 barres, caractéristiques et orientations réelles des sections) dans son propre solveur 3D, applique les combinaisons CM66 (4/3 G + 3/2 W, G + 3/2 W, G + 1,75 W en vent extrême) et vérifie **8 directions de vent** au lieu des 2 du modèle Robot.
 
-**3. Member checks (CM66, Additif 80).** Buckling coefficient k0 = 1/χ with buckling curve c for angles, check k0·N ≤ A·σe, and slenderness limits (legs 120, bracing 200, secondary members 250).
+**3. Vérification des barres (CM66, Additif 80).** Coefficient de flambement k0 = 1/χ avec la courbe c pour les cornières, vérification k0·N ≤ A·σe, et limites d'élancement (membrures 120, contreventement 200, barres secondaires 250).
 
-**4. Hand calculation (Calcpad).** Shear and overturning moment in closed form, leg forces (2 legs for wind on a face, 1 corner leg for diagonal wind), shear shared between the inclined legs and the diagonals, and the usual 2.5 % rule for secondary members.
+**4. Calcul manuel (Calcpad).** Effort tranchant et moment de renversement par formules, efforts dans les membrures (2 membrures pour le vent sur une face, 1 membrure d'angle pour le vent diagonal), partage de l'effort tranchant entre les membrures inclinées et les diagonales, et règle usuelle de 2,5 % pour les barres secondaires.
 
 ## Validation
 
-| Check | Result |
+| Contrôle | Résultat |
 |---|---|
-| Max compression per family, same loads as Robot (self weight and both wind cases) | within **2 %** of Robot |
-| Top displacement | 7.42 mm (Python) vs 7.43 mm (Robot) |
-| NV65 wind per section | within about **5 %** of Robot's wind note (outline areas identical; small difference in how exposed widths are measured) |
-| Buckling coefficient k0 | identical to Robot's notes (4.48, 1.76, 14.18) |
-| Calcpad hand calculation vs 3D model, leg at 10 m | 19.9 kN vs 20.1 kN, ratio 0.42 in both |
+| Compression maximale par famille, mêmes charges que Robot (poids propre et deux cas de vent) | à moins de **2 %** de Robot |
+| Déplacement en tête | 7,42 mm (Python) contre 7,43 mm (Robot) |
+| Vent NV65 par tronçon | à environ **5 %** de la note de vent de Robot (surfaces de contour identiques ; petite différence dans la mesure des largeurs exposées) |
+| Coefficient de flambement k0 | identique aux notes de Robot (4,48 ; 1,76 ; 14,18) |
+| Calcul manuel Calcpad et modèle 3D, membrure à 10 m | 19,9 kN contre 20,1 kN, taux de 0,42 dans les deux cas |
 
-Run the checks with `python -m unittest discover tests`.
+Pour lancer les contrôles : `python -m unittest discover tests`.
 
-## What the independent checks found
+## Ce que les vérifications indépendantes ont trouvé
 
-These are errors in my own Robot model. Robot reported every family as correct, because each check only covers what the model contains.
+Ce sont des erreurs de mon propre modèle Robot. Robot déclarait toutes les familles correctes, car chaque vérification ne couvre que ce que le modèle contient.
 
-1. **Leg segments with the wrong section.** Between 6 and 8 m, two leg segments carry the secondary member section, and one leg between 20 and 25 m carries the diagonal section. Under diagonal wind from a direction the model did not include, the leg at 6 to 7 m reaches a ratio of about **4** (red bars in the utilisation map).
-2. **Only 2 of 8 wind directions** were checked in the model.
-3. **Diagonals not connected to the secondary members.** 18 diagonals pass through the mid-point node of the secondary bracing without being connected to it, so they buckle over their full length: slenderness **331** instead of about **165** once connected.
-4. **Slenderness above the usual limits** even where strength is fine: legs 174 (limit 120) between 10 and 20 m, secondary members 303 (limit 250).
-5. **Inconsistent files.** The saved model, my verification report and my member notes were produced with different section sets, and the wind loads were not regenerated after the sections changed.
+1. **Des tronçons de membrure avec la mauvaise section.** Entre 6 et 8 m, deux tronçons de membrure portent la section des barres secondaires, et une membrure entre 20 et 25 m porte celle des diagonales. Sous un vent diagonal venant d'une direction absente du modèle, la membrure entre 6 et 7 m atteint un taux d'environ **4** (barres rouges sur la carte).
+2. **Seulement 2 directions de vent sur 8** étaient étudiées dans le modèle.
+3. **Des diagonales non reliées aux barres secondaires.** 18 diagonales traversent le nœud à mi-longueur du contreventement secondaire sans y être connectées. Elles flambent donc sur toute leur longueur : élancement de **331** au lieu d'environ **165** une fois reliées.
+4. **Des élancements au-dessus des limites usuelles**, même là où la résistance passe : membrures à 174 (limite 120) entre 10 et 20 m, barres secondaires à 303 (limite 250).
+5. **Des fichiers incohérents entre eux.** Le modèle enregistré, mon rapport de vérification et mes notes de calcul par barre correspondaient à des jeux de sections différents, et le vent n'avait pas été régénéré après le changement des sections.
 
-With the leg sections corrected, strength is comfortable (ratios about 0.4 for legs and diagonals). The design issue is slenderness, not strength ([`results/summary_legs_fixed.txt`](results/summary_legs_fixed.txt)).
+Une fois les sections des membrures corrigées, la résistance est confortable (taux d'environ 0,4 pour les membrures et les diagonales). Le vrai sujet est l'élancement, pas la résistance ([`results/summary_legs_fixed.txt`](results/summary_legs_fixed.txt)).
 
-## Fixes in progress
+## Corrections en cours
 
-- [ ] Give every leg segment the leg section (L60×8)
-- [ ] Connect the 18 diagonals at the mid-point nodes of the secondary bracing
-- [ ] Add a secondary member at mid-panel on the legs between 10 and 20 m
-- [ ] Secondary members L35×4
-- [ ] Regenerate the wind in all directions, with the period from the modal analysis
-- [ ] Re-run Robot's checks and update this repository
+- [ ] Donner la section L60×8 à tous les tronçons de membrure
+- [ ] Relier les 18 diagonales aux nœuds à mi-longueur du contreventement secondaire
+- [ ] Ajouter une barre secondaire à mi-panneau sur les membrures entre 10 et 20 m
+- [ ] Passer les barres secondaires en L35×4
+- [ ] Régénérer le vent dans toutes les directions, avec la période issue de l'analyse modale
+- [ ] Relancer les vérifications de Robot et mettre à jour ce dépôt
 
-## Run it
+## Utilisation
 
 ```bash
 pip install -r requirements.txt
-python src/run_design.py              # model as it is
-python src/run_design.py --fix-legs   # with the leg sections corrected
+python src/run_design.py              # modèle tel quel
+python src/run_design.py --fix-legs   # avec les sections des membrures corrigées
 python -m unittest discover tests
 ```
 
-The scripts in `src/robot_*.py` need Robot Structural Analysis 2015 on Windows (Robot API through `pywin32`). Everything else runs from the JSON files in `data/`.
+Les scripts `src/robot_*.py` nécessitent Robot Structural Analysis 2015 sous Windows (API de Robot via `pywin32`). Tout le reste fonctionne à partir des fichiers JSON du dossier `data/`.
 
-## Limits
+## Limites
 
-Bolted connections, base plates, anchor bolts and foundations are not covered. The wind region, site category and the ξ coefficient (NV65 fig. R-III-3) are assumptions to confirm for a real site. This is a self-study project, not a design for construction.
+Les assemblages boulonnés, les platines, les tiges d'ancrage et les fondations ne sont pas traités. La région de vent, le site et le coefficient ξ (NV65 fig. R-III-3) sont des hypothèses à confirmer pour un site réel. C'est un projet personnel d'auto-formation, pas une étude d'exécution.
 
-## References
+## Références
 
-- Règles NV65 (neige et vent), chapter III, lattice towers
-- Règles CM66 and Additif 80
-- Learning references I used: A. Benchekroun, *Dimensionnement d'un pylône* (2015); S. Hadi and N. Mezhoud, *Analyse de la stabilité des pylônes à treillis*, Master's thesis, Université Badji Mokhtar Annaba (2016)
+- Règles NV65 (neige et vent), chapitre III, pylônes en treillis
+- Règles CM66 et Additif 80
+- Documents qui m'ont servi de référence : A. Benchekroun, *Dimensionnement d'un pylône* (2015) ; S. Hadi et N. Mezhoud, *Analyse de la stabilité des pylônes à treillis*, mémoire de master, Université Badji Mokhtar Annaba (2016)
 
 ---
 
-## Résumé en français
+## English summary
 
-J'ai modélisé un pylône télécom autostable de 25 m sous Robot Structural Analysis, puis je l'ai vérifié de deux façons indépendantes : une note de calcul manuelle sous Calcpad et un outil Python qui pilote Robot par son API et recalcule la tour avec son propre solveur 3D. Les deux vérifications concordent avec Robot (écarts de 2 à 5 %), et elles ont révélé des erreurs dans mon propre modèle : membrures avec une mauvaise section entre 6 et 8 m, seulement 2 directions de vent sur 8, et 18 diagonales non reliées aux barres secondaires, d'où un élancement de 331 au lieu d'environ 165. Une fois les membrures corrigées, la résistance est largement suffisante ; le vrai sujet est l'élancement. Les corrections sont en cours (voir la liste ci-dessus).
+I modelled a 25 m self-supporting telecom lattice tower in Robot Structural Analysis, then checked it independently in two ways: a hand calculation in Calcpad, and a Python tool that drives Robot through its API and recomputes the tower with its own 3D solver (NV65 wind, CM66 / Additif 80 buckling checks). Both checks agree with Robot within 2 to 5 %. They also found errors in my own model: leg segments with the wrong section between 6 and 8 m, only 2 of 8 wind directions checked, and 18 diagonals not connected to the secondary bracing, which gives a slenderness of 331 instead of about 165. With the legs corrected, strength is comfortable; the real issue is slenderness. The fixes are in progress (see the checklist above). The calculation note in `calcpad/` is in French.
 
 **Omar Elgour**, Ingénieur d'État en Génie Civil (EMSI Marrakech) · [LinkedIn](https://www.linkedin.com/in/omar-elgour)
